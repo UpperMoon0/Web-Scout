@@ -16,6 +16,8 @@ from urllib.parse import quote_plus
 import aiohttp
 import requests
 
+from .custom_search_engine import CustomSearchEngine
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,12 +98,19 @@ class SearchService:
         
         # Create cache directory
         os.makedirs(self.cache_dir, exist_ok=True)
+        
+        # Initialize custom search engine
+        db_path = config.get("custom_search_db", "web_scout_search.db")
+        self.custom_search_engine = CustomSearchEngine(db_path, config)
     
     async def initialize(self):
         """Initialize the search service."""
         logger.info("Initializing search service")
         # Load cached searches if exists
         await self._load_cache()
+        
+        # Initialize custom search engine
+        await self.custom_search_engine.initialize()
     
     async def search_web(
         self,
@@ -131,14 +140,18 @@ class SearchService:
             return cached_result
         
         try:
-            # Try different search engines in order of preference
-            if self.google_api_key and self.google_cse_id:
-                response = await self._search_google(query, max_results, search_type)
-            elif self.bing_api_key:
-                response = await self._search_bing(query, max_results, search_type)
-            else:
-                # Fallback to mock search or scraping-based search
-                response = await self._search_fallback(query, max_results, search_type)
+            # Try custom search engine first (Phase 1 implementation)
+            response = await self._search_custom(query, max_results, search_type)
+            
+            # If custom search returns no results, fall back to external APIs
+            if not response.results:
+                if self.google_api_key and self.google_cse_id:
+                    response = await self._search_google(query, max_results, search_type)
+                elif self.bing_api_key:
+                    response = await self._search_bing(query, max_results, search_type)
+                else:
+                    # Final fallback to mock search
+                    response = await self._search_fallback(query, max_results, search_type)
             
             # Cache the result
             self.search_cache[cache_key] = response
@@ -187,6 +200,24 @@ class SearchService:
         """
         related_query = f"related:{url}"
         return await self.search_web(related_query, max_results, "web")
+    
+    async def _search_custom(
+        self, query: str, max_results: int, search_type: str
+    ) -> SearchResponse:
+        """Search using the custom search engine."""
+        logger.info(f"Using custom search engine for query: {query}")
+        
+        try:
+            return await self.custom_search_engine.search(query, max_results, search_type)
+        except Exception as e:
+            logger.error(f"Custom search failed: {e}")
+            # Return empty response instead of raising exception
+            return SearchResponse(
+                query=query,
+                results=[],
+                total_results=0,
+                search_type=search_type,
+            )
     
     async def _search_google(
         self, query: str, max_results: int, search_type: str
@@ -383,4 +414,12 @@ class SearchService:
     async def cleanup(self):
         """Clean up resources."""
         await self._save_cache()
+        
+        # Clean up custom search engine
+        await self.custom_search_engine.cleanup()
+        
         logger.info("Search service cleaned up")
+    
+    async def get_search_statistics(self) -> Dict[str, Any]:
+        """Get statistics from the custom search engine."""
+        return await self.custom_search_engine.get_statistics()
