@@ -1,0 +1,251 @@
+{
+  "test:web:5": {
+    "query": "test",
+    "results": [
+      {
+        "title": "Search result 1 for: test",
+        "url": "https://example.com/search-result-1?q=test",
+        "snippet": "This is a mock search result #1 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 1
+        }
+      },
+      {
+        "title": "Search result 2 for: test",
+        "url": "https://example.com/search-result-2?q=test",
+        "snippet": "This is a mock search result #2 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 2
+        }
+      },
+      {
+        "title": "Search result 3 for: test",
+        "url": "https://example.com/search-result-3?q=test",
+        "snippet": "This is a mock search result #3 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 3
+        }
+      },
+      {
+        "title": "Search result 4 for: test",
+        "url": "https://example.com/search-result-4?q=test",
+        "snippet": "This is a mock search result #4 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 4
+        }
+      },
+      {
+        "title": "Search result 5 for: test",
+        "url": "https://example.com/search-result-5?q=test",
+        "snippet": "This is a mock search result #5 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 5
+        }
+      }
+    ],
+    "total_results": 5,
+    "search_type": "web",
+    "timestamp": "2025-06-23T17:08:13.744525"
+  },
+  "test:web:3": {
+    "query": "test",
+    "results": [
+      {
+        "title": "Search result 1 for: test",
+        "url": "https://example.com/search-result-1?q=test",
+        "snippet": "This is a mock search result #1 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 1
+        }
+      },
+      {
+        "title": "Search result 2 for: test",
+        "url": "https://example.com/search-result-2?q=test",
+        "snippet": "This is a mock search result #2 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 2
+        }
+      },
+      {
+        "title": "Search result 3 for: test",
+        "url": "https://example.com/search-result-3?q=test",
+        "snippet": "This is a mock search result #3 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 3
+        }
+      }
+    ],
+    "total_results": 3,
+    "search_type": "web",
+    "timestamp": "2025-06-23T17:08:13.757164"
+  },
+  "test:images:3": {
+    "query": "test",
+    "results": [
+      {
+        "title": "Search result 1 for: test",
+        "url": "https://example.com/search-result-1?q=test",
+        "snippet": "This is a mock search result #1 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 1
+        }
+      },
+      {
+        "title": "Search result 2 for: test",
+        "url": "https://example.com/search-result-2?q=test",
+        "snippet": "This is a mock search result #2 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 2
+        }
+      },
+      {
+        "title": "Search result 3 for: test",
+        "url": "https://example.com/search-result-3?q=test",
+        "snippet": "This is a mock search result #3 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 3
+        }
+      }
+    ],
+    "total_results": 3,
+    "search_type": "images",
+    "timestamp": "2025-06-23T17:08:13.760515"
+  },
+  "test:news:3": {
+    "query": "test",
+    "results": [
+      {
+        "title": "Search result 1 for: test",
+        "url": "https://example.com/search-result-1?q=test",
+        "snippet": "This is a mock search result #1 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 1
+        }
+      },
+      {
+        "title": "Search result 2 for: test",
+        "url": "https://example.com/search-result-2?q=test",
+        "snippet": "This is a mock search result #2 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 2
+        }
+      },
+      {
+        "title": "Search result 3 for: test",
+        "url": "https://example.com/search-result-3?q=test",
+        "snippet": "This is a mock search result #3 for the query 'test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 3
+        }
+      }
+    ],
+    "total_results": 3,
+    "search_type": "news",
+    "timestamp": "2025-06-23T17:08:13.771800"
+  },
+  "site:httpbin.org test:web:5": {
+    "query": "site:httpbin.org test",
+    "results": [
+      {
+        "title": "Search result 1 for: site:httpbin.org test",
+        "url": "https://example.com/search-result-1?q=site%3Ahttpbin.org+test",
+        "snippet": "This is a mock search result #1 for the query 'site:httpbin.org test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 1
+        }
+      },
+      {
+        "title": "Search result 2 for: site:httpbin.org test",
+        "url": "https://example.com/search-result-2?q=site%3Ahttpbin.org+test",
+        "snippet": "This is a mock search result #2 for the query 'site:httpbin.org test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 2
+        }
+      },
+      {
+        "title": "Search result 3 for: site:httpbin.org test",
+        "url": "https://example.com/search-result-3?q=site%3Ahttpbin.org+test",
+        "snippet": "This is a mock search result #3 for the query 'site:httpbin.org test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 3
+        }
+      },
+      {
+        "title": "Search result 4 for: site:httpbin.org test",
+        "url": "https://example.com/search-result-4?q=site%3Ahttpbin.org+test",
+        "snippet": "This is a mock search result #4 for the query 'site:httpbin.org test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 4
+        }
+      },
+      {
+        "title": "Search result 5 for: site:httpbin.org test",
+        "url": "https://example.com/search-result-5?q=site%3Ahttpbin.org+test",
+        "snippet": "This is a mock search result #5 for the query 'site:httpbin.org test'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 5
+        }
+      }
+    ],
+    "total_results": 5,
+    "search_type": "web",
+    "timestamp": "2025-06-23T17:08:13.976336"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "test query:web:3": {
+    "query": "test query",
+    "results": [
+      {
+        "title": "Search result 1 for: test query",
+        "url": "https://example.com/search-result-1?q=test+query",
+        "snippet": "This is a mock search result #1 for the query 'test query'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 1
+        }
+      },
+      {
+        "title": "Search result 2 for: test query",
+        "url": "https://example.com/search-result-2?q=test+query",
+        "snippet": "This is a mock search result #2 for the query 'test query'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 2
+        }
+      },
+      {
+        "title": "Search result 3 for: test query",
+        "url": "https://example.com/search-result-3?q=test+query",
+        "snippet": "This is a mock search result #3 for the query 'test query'. In a real implementation with API keys, this would show actual search results.",
+        "source": "Mock Search",
+        "thumbnail": null,
+        "metadata": {
+          "mock": true,
+          "result_number": 3
+        }
+      }
+    ],
+    "total_results": 3,
+    "search_type": "web",
+    "timestamp": "2025-06-23T17:10:13.274525"
+  }
+}

@@ -23,7 +23,7 @@ from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from .search_service import SearchResult, SearchResponse
+from .search_models import SearchResult, SearchResponse
 
 logger = logging.getLogger(__name__)
 
@@ -671,7 +671,11 @@ class CustomSearchEngine:
         """Respect crawl delay for domain."""
         # Get delay from robots.txt or use default
         robots = self.robots_cache.get(domain, {})
-        delay = robots.get("delay", self.crawl_delay)
+        delay = robots.get("delay")
+        
+        # Use default if delay is None
+        if delay is None:
+            delay = self.crawl_delay
         
         # Check last crawl time
         last_crawl = self.last_crawl_times.get(domain, 0)
