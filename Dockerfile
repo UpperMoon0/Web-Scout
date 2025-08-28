@@ -1,6 +1,5 @@
-
 # Use an official Python runtime as a parent image
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -11,12 +10,15 @@ COPY requirements.txt .
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the content of the local src directory to the working directory
+# Copy the content of the local directory to the working directory
 COPY main.py .
+COPY mcp_server.py .
 
+# Copy environment file if it exists
+COPY .env* ./
 
 # Expose the port the app runs on
 EXPOSE 8000
 
-# Run the command to start the server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Default command - can be overridden to run MCP server
+CMD ["python", "main.py"]

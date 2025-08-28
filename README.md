@@ -62,6 +62,84 @@ curl "http://localhost:8000/search?query=artificial+intelligence&mode=1"
 }
 ```
 
+}
+```
+
+## MCP Server Integration
+
+Web-Scout can also function as an MCP (Model Context Protocol) server, allowing AI assistants to perform web searches directly through tools.
+
+### MCP Features
+
+- **Web Search Tool**: Perform web searches with AI summarization
+- **Dual Mode Support**: Both summary and detailed analysis modes
+- **Stdio Transport**: Uses standard input/output for communication
+- **JSON Responses**: Structured output for easy integration
+
+### MCP Tools Available
+
+#### Web Search Tool
+- **Name**: `web_search`
+- **Description**: Perform a web search using DuckDuckGo and generate AI-powered summaries
+- **Parameters**:
+  - `query` (string, required): The search query to perform
+  - `mode` (string, optional): Response mode - "summary" or "detailed" (default: "summary")
+
+### MCP Server Setup
+
+#### Method 1: Direct Python Execution
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+2. Set your Gemini API key:
+```bash
+export GEMINI_API_KEY=your_api_key_here
+```
+
+3. Run the MCP server:
+```bash
+python mcp_server.py
+```
+
+#### Method 2: Docker Container
+```bash
+# Run as MCP server in Docker
+docker run -e GEMINI_API_KEY=your_api_key_here web-scout python main.py --mcp
+```
+
+### Integrating with AI Tools
+
+To use Web-Scout as an MCP server with AI tools like Claude Desktop or Roo:
+
+1. **Create MCP Configuration**:
+```json
+{
+  "mcpServers": {
+    "web-scout": {
+      "command": "python",
+      "args": ["/path/to/Web-Scout/mcp_server.py"],
+      "env": {
+        "GEMINI_API_KEY": "your_gemini_api_key_here"
+      }
+    }
+  }
+}
+```
+
+2. **Configure your AI tool** to use the MCP configuration:
+   - For Claude Desktop: Add to `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - For Roo: Add to the appropriate configuration file
+
+3. **Usage Example**:
+```
+Can you search for the latest news about artificial intelligence?
+```
+
+The AI tool will use the Web-Scout MCP server to perform the search and provide summarized results.
+
+## Development
 ## Development
 
 ### Local Development (without Docker)

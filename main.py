@@ -8,6 +8,9 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import re
+import sys
+import json
+import asyncio
 
 # Load environment variables
 load_dotenv()
@@ -74,7 +77,7 @@ if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY not found in environment variables")
 
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-2.5-flash') 
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 app = FastAPI()
 
@@ -181,3 +184,210 @@ async def search(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# MCP Server Implementation (Simple JSON-RPC)
+async def perform_web_search(query: str, mode: str = "summary") -> dict:
+    """Perform web search using the existing logic."""
+    try:
+        # Get search results using DDGS
+        with DDGS() as ddgs:
+            results = [r for r in ddgs.text(query, max_results=10)]
+
+        if not results:
+            return {
+                "query": query,
+                "summary": "No search results found for the query.",
+                "sources_used": 0
+            }
+
+        # Scrape content from top 5 results
+        results_with_content = []
+        for i, result in enumerate(results[:5]):
+            print(f"MCP Server: Scraping content from: {result.get('href', 'No URL')} ({i+1}/5)")
+            content = scrape_webpage_content(result['href'])
+            result_with_content = result.copy()
+            result_with_content['full_content'] = content
+            results_with_content.append(result_with_content)
+
+        # Add remaining results without scraping
+        results_with_content.extend(results[5:])
+
+        # Generate prompt and get LLM summary
+        prompt = generate_search_prompt(query, results_with_content, mode)
+
+        response = model.generate_content(prompt)
+        summary = response.text
+
+        return {
+            "query": query,
+            "mode": mode,
+            "summary": summary,
+            "sources_used": len(results)
+        }
+
+    except Exception as e:
+        return {
+            "query": query,
+            "summary": f"Error performing search: {str(e)}",
+            "sources_used": 0
+        }
+
+
+# Simple MCP Server using JSON-RPC over stdio
+class SimpleMCPServer:
+    def __init__(self):
+        self.request_id = 0
+
+    async def handle_message(self, message: dict) -> dict:
+        """Handle incoming MCP messages."""
+        try:
+            method = message.get('method')
+            params = message.get('params', {})
+            msg_id = message.get('id')
+
+            if method == 'initialize':
+                return {
+                    'jsonrpc': '2.0',
+                    'id': msg_id,
+                    'result': {
+                        'protocolVersion': '2024-11-05',
+                        'capabilities': {
+                            'tools': {}
+                        },
+                        'serverInfo': {
+                            'name': 'web-scout-mcp',
+                            'version': '1.0.0'
+                        }
+                    }
+                }
+
+            elif method == 'tools/list':
+                return {
+                    'jsonrpc': '2.0',
+                    'id': msg_id,
+                    'result': {
+                        'tools': [
+                            {
+                                'name': 'web_search',
+                                'description': 'Perform a web search using DuckDuckGo and generate AI-powered summaries',
+                                'inputSchema': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'query': {
+                                            'type': 'string',
+                                            'description': 'The search query to perform'
+                                        },
+                                        'mode': {
+                                            'type': 'string',
+                                            'description': 'Response mode: "summary" for concise summary, "detailed" for in-depth analysis',
+                                            'enum': ['summary', 'detailed'],
+                                            'default': 'summary'
+                                        }
+                                    },
+                                    'required': ['query']
+                                }
+                            }
+                        ]
+                    }
+                }
+
+            elif method == 'tools/call':
+                tool_name = params.get('name')
+                tool_args = params.get('arguments', {})
+
+                if tool_name == 'web_search':
+                    query = tool_args.get('query', '')
+                    mode = tool_args.get('mode', 'summary')
+
+                    if not query:
+                        raise ValueError("Query parameter is required")
+
+                    result = await perform_web_search(query, mode)
+                    result_json = json.dumps(result, indent=2)
+
+                    return {
+                        'jsonrpc': '2.0',
+                        'id': msg_id,
+                        'result': {
+                            'content': [
+                                {
+                                    'type': 'text',
+                                    'text': result_json
+                                }
+                            ]
+                        }
+                    }
+                else:
+                    raise ValueError(f"Unknown tool: {tool_name}")
+
+            else:
+                return {
+                    'jsonrpc': '2.0',
+                    'id': msg_id,
+                    'error': {
+                        'code': -32601,
+                        'message': f'Method not found: {method}'
+                    }
+                }
+
+        except Exception as e:
+            return {
+                'jsonrpc': '2.0',
+                'id': message.get('id'),
+                'error': {
+                    'code': -32603,
+                    'message': str(e)
+                }
+            }
+
+    async def run(self):
+        """Run the MCP server."""
+        try:
+            while True:
+                line = await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
+                if not line:
+                    break
+
+                line = line.strip()
+                if not line:
+                    continue
+
+                try:
+                    message = json.loads(line)
+                    response = await self.handle_message(message)
+
+                    if response:
+                        response_str = json.dumps(response)
+                        print(response_str, flush=True)
+
+                except json.JSONDecodeError as e:
+                    error_response = {
+                        'jsonrpc': '2.0',
+                        'id': None,
+                        'error': {
+                            'code': -32700,
+                            'message': f'Parse error: {str(e)}'
+                        }
+                    }
+                    print(json.dumps(error_response), flush=True)
+
+        except KeyboardInterrupt:
+            pass
+
+
+def main():
+    """Main function to run the MCP server or REST API."""
+    if len(sys.argv) > 1 and sys.argv[1] == "--mcp":
+        # Run as MCP server
+        print("Starting Web-Scout MCP server...", file=sys.stderr)
+        server = SimpleMCPServer()
+        asyncio.run(server.run())
+    else:
+        # Run as REST API (existing behavior)
+        import uvicorn
+        uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+
+
+if __name__ == "__main__":
+    main()
