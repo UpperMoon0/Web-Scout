@@ -1,3 +1,5 @@
 fastapi
 uvicorn
-duckduckgo-search
+ddgs
+google-generativeai
+python-dotenv

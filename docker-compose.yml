@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web-scout:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount .env file to make API key available in container
+      - ./.env:/app/.env
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    restart: unless-stopped
