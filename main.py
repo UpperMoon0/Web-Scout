@@ -1,25 +1,29 @@
-from fastapi import FastAPI
 import sys
 import os
-from .api.routes import router
-from .mcp.server import SimpleMCPServer
+sys.path.insert(0, '/app/Web-Scout')
+
+from fastapi import FastAPI
+import uvicorn
+from api.routes import router
 
 # Initialize FastAPI app
-app = FastAPI()
+app = FastAPI(
+    title="Web-Scout",
+    description="Web search and AI-powered summarization service with MCP support",
+    version="1.0.0"
+)
 app.include_router(router)
 
 def main():
-    """Main function to run the MCP server or REST API."""
-    if len(sys.argv) > 1 and sys.argv[1] == "--mcp":
-        # Run as MCP server
-        print("Starting Web-Scout MCP server...", file=sys.stderr)
-        server = SimpleMCPServer()
-        import asyncio
-        asyncio.run(server.run())
-    else:
-        # Run as REST API (existing behavior)
-        import uvicorn
-        uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+    """Start the unified server (REST API + Embedded MCP)."""
+    port = int(os.getenv("PORT", "8000"))
+    print(f"Starting Web-Scout server on port {port} (HTTP + Embedded MCP)")
+
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port
+    )
 
 if __name__ == "__main__":
     main()

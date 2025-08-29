@@ -1,6 +1,6 @@
-from ..core.config import model
-from ..services.web_scraper import scrape_webpage_content
-from ..utils.prompt_builder import generate_search_prompt
+from core.config import model
+from services.web_scraper import scrape_webpage_content
+from utils.prompt_builder import generate_search_prompt
 from ddgs import DDGS
 
 
