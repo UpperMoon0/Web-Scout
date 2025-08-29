@@ -16,7 +16,7 @@ model = genai.GenerativeModel('gemini-2.5-flash')
 # Shared tool schema definition
 WEB_SEARCH_TOOL_SCHEMA = {
     'name': 'web_search',
-    'description': 'Perform a web search using DuckDuckGo and generate AI-powered summaries',
+    'description': 'Perform a web search and provide summaries',
     'inputSchema': {
         'type': 'object',
         'properties': {

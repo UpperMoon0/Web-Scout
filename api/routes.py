@@ -154,19 +154,15 @@ async def call_tool(request: dict):
 @router.get("/search")
 async def search(
     query: str,
-    mode: int = Query(0, description="Response mode: 0 for summary, 1 for detailed", ge=0, le=1)
+    mode: str = Query("summary", description="Response mode: 'summary' or 'detailed'")
 ):
     if not query:
         raise HTTPException(status_code=400, detail="Query parameter is required")
 
-    if mode not in [0, 1]:
-        raise HTTPException(status_code=400, detail="Mode must be 0 (summary) or 1 (detailed)")
-
-    mode_str = "summary" if mode == 0 else "detailed"
+    if mode not in ["summary", "detailed"]:
+        raise HTTPException(status_code=400, detail="Mode must be 'summary' or 'detailed'")
 
     # Use shared core search function
-    result = await perform_core_search(query, mode_str)
+    result = await perform_core_search(query, mode)
 
-    # Convert mode string back to integer for REST API response
-    result["mode"] = mode
     return result
