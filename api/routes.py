@@ -112,44 +112,6 @@ async def embedded_mcp_endpoint(request: Request):
 async def health_check():
     return {"status": "ok"}
 
-@router.get("/tools")
-async def list_tools():
-    """List available MCP tools."""
-    return {
-        'tools': [WEB_SEARCH_TOOL_SCHEMA]
-    }
-
-@router.post("/tools/call")
-async def call_tool(request: dict):
-    """Execute an MCP tool call."""
-    try:
-        tool_name = request.get('name')
-        arguments = request.get('arguments', {})
-
-        if tool_name == 'web_search':
-            query = arguments.get('query', '')
-            mode = arguments.get('mode', 'summary')
-
-            if not query:
-                raise HTTPException(status_code=400, detail="Query parameter is required")
-
-            result = await perform_core_search(query, mode)
-
-            return {
-                'result': {
-                    'content': [
-                        {
-                            'type': 'text',
-                            'text': json.dumps(result, indent=2)
-                        }
-                    ]
-                }
-            }
-        else:
-            raise HTTPException(status_code=400, detail=f"Unknown tool: {tool_name}")
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/search")
 async def search(

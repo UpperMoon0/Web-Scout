@@ -9,6 +9,7 @@ A FastAPI application that performs web searches using DuckDuckGo and generates 
 - Two output modes: Summary and Detailed analysis
 - Docker & Docker Compose ready
 - Secure API key management via environment variables
+- MCP (Model Context Protocol) support over HTTP
 
 ## Prerequisites
 
@@ -43,25 +44,22 @@ curl http://localhost:8000/health
 #### Summary Mode (Default)
 ```bash
 curl "http://localhost:8000/search?query=artificial+intelligence"
-# or explicitly specify mode=0
-curl "http://localhost:8000/search?query=artificial+intelligence&mode=0"
+# or explicitly specify mode=summary
+curl "http://localhost:8000/search?query=artificial+intelligence&mode=summary"
 ```
 
 #### Detailed Mode
 ```bash
-curl "http://localhost:8000/search?query=artificial+intelligence&mode=1"
+curl "http://localhost:8000/search?query=artificial+intelligence&mode=detailed"
 ```
 
 #### Response Format
 ```json
 {
   "query": "your search query",
-  "mode": 0,
+  "mode": "summary",
   "summary": "AI-generated analysis...",
   "sources_used": 10
-}
-```
-
 }
 ```
 
@@ -73,7 +71,7 @@ Web-Scout can also function as an MCP (Model Context Protocol) server, allowing 
 
 - **Web Search Tool**: Perform web searches with AI summarization
 - **Dual Mode Support**: Both summary and detailed analysis modes
-- **Stdio Transport**: Uses standard input/output for communication
+- **HTTP Transport**: MCP over HTTP protocol for client integration
 - **JSON Responses**: Structured output for easy integration
 
 ### MCP Tools Available
@@ -87,7 +85,9 @@ Web-Scout can also function as an MCP (Model Context Protocol) server, allowing 
 
 ### MCP Server Setup
 
-#### Method 1: Direct Python Execution
+Web-Scout provides MCP functionality over HTTP, accessible at the `/mcp` endpoint.
+
+#### Method 1: Direct FastAPI Server
 1. Install dependencies:
 ```bash
 pip install -r requirements.txt
@@ -98,16 +98,20 @@ pip install -r requirements.txt
 export GEMINI_API_KEY=your_api_key_here
 ```
 
-3. Run the MCP server:
+3. Run the HTTP server with MCP endpoint:
 ```bash
-python mcp_server.py
+python main.py
 ```
+
+The MCP endpoint will be available at `http://localhost:8000/mcp`
 
 #### Method 2: Docker Container
 ```bash
-# Run as MCP server in Docker
-docker run -e GEMINI_API_KEY=your_api_key_here web-scout python main.py --mcp
+# Run the HTTP server with Docker (MCP available at /mcp)
+docker-compose up --build
 ```
+# Or run standalone container
+docker run -p 8000:8000 -e GEMINI_API_KEY=your_api_key_here web-scout
 
 ### Integrating with AI Tools
 
@@ -119,7 +123,7 @@ To use Web-Scout as an MCP server with AI tools like Claude Desktop or Roo:
   "mcpServers": {
     "web-scout": {
       "command": "python",
-      "args": ["/path/to/Web-Scout/mcp_server.py"],
+      "args": ["-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"],
       "env": {
         "GEMINI_API_KEY": "your_gemini_api_key_here"
       }
@@ -137,9 +141,8 @@ To use Web-Scout as an MCP server with AI tools like Claude Desktop or Roo:
 Can you search for the latest news about artificial intelligence?
 ```
 
-The AI tool will use the Web-Scout MCP server to perform the search and provide summarized results.
+The AI tool will use the Web-Scout MCP server (via the `/mcp` endpoint) to perform the search and provide summarized results.
 
-## Development
 ## Development
 
 ### Local Development (without Docker)
