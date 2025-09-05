@@ -16,7 +16,7 @@ model = genai.GenerativeModel('gemini-2.5-flash')
 # Shared tool schema definition
 WEB_SEARCH_TOOL_SCHEMA = {
     'name': 'web_search',
-    'description': 'Perform a web search and provide summaries',
+    'description': 'Description: Perform web searches to gather and summarize information. Strength: Accesses current web information beyond LLM training data, handles diverse queries with source references. Weakness: Slower than LLM world knowledge responses, not real-time, limited sources, potential inaccuracies. Best practice: Focus on single topics, use for current events or information beyond LLM knowledge cutoff.',
     'inputSchema': {
         'type': 'object',
         'properties': {
