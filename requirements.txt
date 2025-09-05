@@ -3,7 +3,7 @@ uvicorn
 ddgs
 google-generativeai
 python-dotenv
-requests
+httpx
 beautifulsoup4
 lxml
 psutil
