@@ -40,9 +40,9 @@ class ServiceDiscovery:
         # Add public URL tag if DOMAIN_NAME is set
         domain_name = os.getenv("DOMAIN_NAME")
         if domain_name:
-            # Construct public URL: https://{service_name}.{domain_name}
-            public_url = f"https://{service_name}.{domain_name}"
-            self.tags.append(f"url={public_url}")
+            # Construct hostname: {service_name}.{domain_name}
+            hostname = f"{service_name}.{domain_name}"
+            self.tags.append(f"hostname={hostname}")
         
         # Registration thread control
         self._stop_event = threading.Event()
