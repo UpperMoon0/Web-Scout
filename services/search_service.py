@@ -33,8 +33,19 @@ async def perform_core_search(query: str, mode_str: str) -> dict:
         # Generate prompt and get LLM summary
         prompt = generate_search_prompt(query, results_with_content, mode_str)
 
-        response = model.generate_content(prompt)
-        summary = response.text
+        if model:
+            response = model.generate_content(prompt)
+            summary = response.text
+        else:
+            # Fallback: Generate a basic summary from search snippets
+            summary_lines = ["**AI Summarization unavailable. Displaying top search results:**\n"]
+            for i, res in enumerate(results_with_content[:5]):
+                title = res.get('title', 'No Title')
+                href = res.get('href', '#')
+                body = res.get('body', 'No description available.')
+                summary_lines.append(f"{i+1}. **[{title}]({href})**\n   {body}\n")
+            
+            summary = "\n".join(summary_lines)
 
         return {
             "query": query,
