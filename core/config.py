@@ -7,11 +7,13 @@ load_dotenv()
 
 # Configure Gemini AI
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY not found in environment variables")
 
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-2.5-flash')
+model = None
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    model = genai.GenerativeModel('gemini-2.5-flash')
+else:
+    print("WARNING: GEMINI_API_KEY not found. AI features will be disabled.")
 
 # Shared tool schema definition
 WEB_SEARCH_TOOL_SCHEMA = {
