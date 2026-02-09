@@ -25,7 +25,7 @@ async def startup_event():
     sd = ServiceDiscovery(
         service_name="web-scout",
         port=port,
-        tags=["mcp"]
+        tags=["mcp", "web-search"]
     )
     sd.start()
 
