@@ -66,7 +66,7 @@ async def test_search_without_ai_key_fallback():
         result = await perform_core_search("query", "summary")
         
         # Check that we got the fallback formatted list
-        assert "**AI Summarization unavailable**" in result['summary']
+        assert "AI Summarization unavailable" in result['summary']
         assert "Test Result 1" in result['summary']
         assert "http://test1.com" in result['summary']
         assert result['sources_used'] == 2
