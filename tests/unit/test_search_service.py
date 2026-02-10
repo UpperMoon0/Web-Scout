@@ -41,12 +41,13 @@ async def test_search_with_ai_summary():
         mock_response = MagicMock()
         mock_response.text = "AI Generated Summary"
         mock_model.generate_content.return_value = mock_response
+        mock_model.generate_content_async = AsyncMock(return_value=mock_response)
 
         result = await perform_core_search("query", "summary")
         
         assert result['summary'] == "AI Generated Summary"
         assert result['sources_used'] == 2
-        mock_model.generate_content.assert_called_once()
+        mock_model.generate_content_async.assert_called_once()
 
 @pytest.mark.asyncio
 async def test_search_without_ai_key_fallback():
