@@ -1,3 +1,4 @@
+import asyncio
 from core.config import model
 from services.web_scraper import scrape_webpage_content
 from utils.prompt_builder import generate_search_prompt
@@ -7,9 +8,14 @@ from ddgs import DDGS
 async def perform_core_search(query: str, mode_str: str) -> dict:
     """Core search functionality shared between REST API and MCP server."""
     try:
-        # Get search results using DDGS
-        with DDGS() as ddgs:
-            results = [r for r in ddgs.text(query, max_results=10)]
+        # Get search results using DDGS in a separate thread to avoid blocking
+        loop = asyncio.get_running_loop()
+        
+        def run_search():
+            with DDGS() as ddgs:
+                return [r for r in ddgs.text(query, max_results=10)]
+        
+        results = await loop.run_in_executor(None, run_search)
 
         if not results:
             return {
@@ -18,11 +24,16 @@ async def perform_core_search(query: str, mode_str: str) -> dict:
                 "sources_used": 0
             }
 
-        # Scrape content from top 5 results
-        results_with_content = []
+        # Concurrently scrape content from top 5 results
+        tasks = []
         for i, result in enumerate(results[:5]):
             print(f"Scraping content from: {result.get('href', 'No URL')} ({i+1}/5)")
-            content = scrape_webpage_content(result['href'])
+            tasks.append(scrape_webpage_content(result['href']))
+        
+        scraped_contents = await asyncio.gather(*tasks)
+
+        results_with_content = []
+        for i, (result, content) in enumerate(zip(results[:5], scraped_contents)):
             result_with_content = result.copy()
             result_with_content['full_content'] = content
             results_with_content.append(result_with_content)
@@ -30,11 +41,17 @@ async def perform_core_search(query: str, mode_str: str) -> dict:
         # Add remaining results without scraping
         results_with_content.extend(results[5:])
 
-        # Generate prompt and get LLM summary
+        # Generate prompt and get LLM summary asynchronously
         prompt = generate_search_prompt(query, results_with_content, mode_str)
 
         if model:
-            response = model.generate_content(prompt)
+            # Use async generation if available, otherwise run in threadpool
+            if hasattr(model, 'generate_content_async'):
+                response = await model.generate_content_async(prompt)
+            else:
+                # Fallback for models without async support
+                response = await loop.run_in_executor(None, model.generate_content, prompt)
+            
             summary = response.text
         else:
             # Fallback: Generate a basic summary from search snippets

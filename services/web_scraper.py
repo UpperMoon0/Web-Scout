@@ -1,22 +1,24 @@
-import requests
+import httpx
 from bs4 import BeautifulSoup
 from typing import Optional
 import re
 
 
-def scrape_webpage_content(url: str, max_length: int = 3000) -> Optional[str]:
-    """Scrape and extract meaningful content from a webpage."""
+async def scrape_webpage_content(url: str, max_length: int = 3000) -> Optional[str]:
+    """Scrape and extract meaningful content from a webpage asynchronously."""
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
 
-        # Fetch webpage
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
+        # Fetch webpage asynchronously
+        async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+            html_content = response.content
 
         # Parse HTML
-        soup = BeautifulSoup(response.content, 'lxml')
+        soup = BeautifulSoup(html_content, 'lxml')
 
         # Remove unwanted elements
         for element in soup(['script', 'style', 'nav', 'footer', 'header', 'aside', 'sidebar']):
@@ -53,7 +55,7 @@ def scrape_webpage_content(url: str, max_length: int = 3000) -> Optional[str]:
 
         return full_content.strip() if full_content else None
 
-    except requests.RequestException as e:
+    except httpx.RequestError as e:
         print(f"Error scraping {url}: {str(e)}")
         return None
     except Exception as e:
