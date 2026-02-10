@@ -4,6 +4,8 @@ from services.search_service import perform_core_search
 import json
 
 router = APIRouter()
+mcp_router = APIRouter()
+
 
 
 async def handle_json_rpc_message(message: dict) -> dict:
@@ -88,7 +90,7 @@ async def handle_json_rpc_message(message: dict) -> dict:
         }
 
 
-@router.post("/mcp")
+@mcp_router.post("/mcp")
 async def embedded_mcp_endpoint(request: Request):
     """Embedded MCP endpoint that handles JSON-RPC messages over HTTP."""
     try:

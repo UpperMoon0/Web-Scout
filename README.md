@@ -105,6 +105,7 @@ python main.py
 
 The MCP endpoint will be available at `http://localhost:8000/mcp`
 
+
 #### Method 2: Docker Container
 ```bash
 # Run the HTTP server with Docker (MCP available at /mcp)

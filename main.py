@@ -4,7 +4,7 @@ sys.path.insert(0, '/app/Web-Scout')
 
 from fastapi import FastAPI
 import uvicorn
-from api.routes import router
+from api.routes import router, mcp_router
 from utils.service_discovery import ServiceDiscovery
 
 # Initialize FastAPI app
@@ -14,6 +14,8 @@ app = FastAPI(
     version="1.0.0"
 )
 app.include_router(router, prefix="/api")
+app.include_router(mcp_router)
+
 
 # Service Discovery
 sd = None
