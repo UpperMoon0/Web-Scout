@@ -43,11 +43,6 @@ class ServiceDiscovery:
             # Construct hostname: {service_name}.{domain_name}
             hostname = f"{service_name}.{domain_name}"
             self.tags.append(f"hostname={hostname}")
-        else:
-            # Fallback for local dev (docker-compose service name)
-            # We assume service_name resolves in docker network.
-            hostname = f"{service_name}:{port}"
-            self.tags.append(f"hostname={hostname}")
         
         # Registration thread control
         self._stop_event = threading.Event()
