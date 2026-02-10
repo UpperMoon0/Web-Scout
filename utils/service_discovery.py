@@ -43,6 +43,11 @@ class ServiceDiscovery:
             # Construct hostname: {service_name}.{domain_name}
             hostname = f"{service_name}.{domain_name}"
             self.tags.append(f"hostname={hostname}")
+        else:
+            # Fallback for local dev (docker-compose service name)
+            # We assume service_name resolves in docker network.
+            hostname = f"{service_name}:{port}"
+            self.tags.append(f"hostname={hostname}")
         
         # Registration thread control
         self._stop_event = threading.Event()
@@ -57,7 +62,7 @@ class ServiceDiscovery:
         
         # Define health check (assuming the service has a /health endpoint)
         check = {
-            "HTTP": f"http://{self.hostname}:{self.port}/health",
+            "HTTP": f"http://{self.hostname}:{self.port}/api/health",
             "Interval": "10s",
             "Timeout": "2s", 
             "DeregisterCriticalServiceAfter": "1m"

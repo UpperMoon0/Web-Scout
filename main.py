@@ -13,7 +13,7 @@ app = FastAPI(
     description="Web search and AI-powered summarization service with MCP support",
     version="1.0.0"
 )
-app.include_router(router)
+app.include_router(router, prefix="/api")
 
 # Service Discovery
 sd = None
