@@ -1,3 +1,5 @@
+from core.settings import settings_manager
+
 def generate_search_prompt(query: str, search_results: list, mode: str) -> str:
     """Generate a prompt for the LLM based on search results and mode."""
     results_text = ""
@@ -21,7 +23,13 @@ def generate_search_prompt(query: str, search_results: list, mode: str) -> str:
         results_text += "\n"
 
     if mode == "summary":
-        prompt = f"""Based on the following search results for the query: "{query}"
+        template = settings_manager.get("summary_prompt_template")
+        # Ensure placeholders are formatted correctly
+        try:
+            prompt = template.replace("{query}", query).replace("{results_text}", results_text)
+        except Exception:
+            # Fallback to default if template is somehow broken
+            prompt = f"""Based on the following search results for the query: "{query}"
 
 Please provide a concise summary of the key findings in 2-3 paragraphs. Focus on the most relevant and important information.
 
@@ -30,7 +38,11 @@ Search Results:
 
 Summary:"""
     elif mode == "detailed":
-        prompt = f"""Based on the following search results for the query: "{query}"
+        template = settings_manager.get("detailed_prompt_template")
+        try:
+            prompt = template.replace("{query}", query).replace("{results_text}", results_text)
+        except Exception:
+            prompt = f"""Based on the following search results for the query: "{query}"
 
 Please provide a detailed analysis in 4-5 paragraphs, covering:
 1. Main themes and topics found

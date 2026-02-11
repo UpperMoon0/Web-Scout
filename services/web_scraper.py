@@ -2,10 +2,14 @@ import httpx
 from bs4 import BeautifulSoup
 from typing import Optional
 import re
+from core.settings import settings_manager
 
 
-async def scrape_webpage_content(url: str, max_length: int = 3000) -> Optional[str]:
+async def scrape_webpage_content(url: str, max_length: int = None) -> Optional[str]:
     """Scrape and extract meaningful content from a webpage asynchronously."""
+    if max_length is None:
+        max_length = settings_manager.get("max_content_length")
+
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'

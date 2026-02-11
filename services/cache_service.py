@@ -1,13 +1,13 @@
 from collections import deque
 from datetime import datetime
 from typing import List, Dict, Any
+from core.settings import settings_manager
 
 class SearchCache:
-    def __init__(self, max_size: int = 10):
-        self.max_size = max_size
-        self.cache = deque(maxlen=max_size)
+    def __init__(self):
+        self.cache = deque()
 
-    def add(self, query: str, mode: str, results: List[Dict[str, Any]], summary: str):
+    def add(self, query: str, mode: str, results: List[Dict[str, Any]], summary: str, timing: Dict[str, float] = None):
         """Add a search result to the cache."""
         cache_entry = {
             "id": datetime.now().strftime("%Y%m%d%H%M%S%f"),
@@ -15,14 +15,20 @@ class SearchCache:
             "query": query,
             "mode": mode,
             "results": results,
-            "summary": summary
+            "summary": summary,
+            "timing": timing or {}
         }
-        # If we're at max size, deque handles the removal of the oldest item
+        
         self.cache.appendleft(cache_entry)
+        
+        # Enforce max size dynamically
+        max_size = settings_manager.get("max_cache_size")
+        while len(self.cache) > max_size:
+            self.cache.pop()
 
     def get_all(self) -> List[Dict[str, Any]]:
         """Return all cached searches."""
         return list(self.cache)
 
 # Global cache instance
-search_cache = SearchCache(max_size=10)
+search_cache = SearchCache()

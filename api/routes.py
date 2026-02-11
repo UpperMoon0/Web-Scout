@@ -2,12 +2,15 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from core.config import WEB_SEARCH_TOOL_SCHEMA
 from services.search_service import perform_core_search
 from services.cache_service import search_cache
+from core.settings import settings_manager
 import json
 
 router = APIRouter()
 mcp_router = APIRouter()
 
 
+
+import copy
 
 async def handle_json_rpc_message(message: dict) -> dict:
     """Handle a single JSON-RPC message for embedded MCP."""
@@ -33,11 +36,17 @@ async def handle_json_rpc_message(message: dict) -> dict:
             }
 
         elif method == 'tools/list':
+            # Create a deep copy of the schema to modify defaults dynamically
+            schema = copy.deepcopy(WEB_SEARCH_TOOL_SCHEMA)
+            default_mode = settings_manager.get("search_mode")
+            if 'inputSchema' in schema and 'properties' in schema['inputSchema'] and 'mode' in schema['inputSchema']['properties']:
+                schema['inputSchema']['properties']['mode']['default'] = default_mode
+
             return {
                 'jsonrpc': '2.0',
                 'id': msg_id,
                 'result': {
-                    'tools': [WEB_SEARCH_TOOL_SCHEMA]
+                    'tools': [schema]
                 }
             }
 
@@ -137,3 +146,15 @@ async def search(
     result = await perform_core_search(query, mode)
 
     return result
+
+
+@router.get("/settings")
+async def get_settings():
+    """Retrieve current configuration settings."""
+    return settings_manager.get_settings()
+
+
+@router.post("/settings")
+async def update_settings(settings: dict):
+    """Update configuration settings."""
+    return settings_manager.save_settings(settings)
