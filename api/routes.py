@@ -116,6 +116,12 @@ async def health_check():
     return {"status": "ok"}
 
 
+@router.get("/cache")
+async def get_cache():
+    """Retrieve cached search results."""
+    return search_cache.get_all()
+
+
 @router.get("/search")
 async def search(
     query: str,
