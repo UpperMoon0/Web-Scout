@@ -56,6 +56,9 @@ class SettingsManager:
 
     def _load_settings(self) -> Dict[str, Any]:
         """Load settings from JSON file or return defaults."""
+        # Ensure data directory exists
+        os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
+        
         if not os.path.exists(SETTINGS_FILE):
             return DEFAULT_SETTINGS.copy()
         
