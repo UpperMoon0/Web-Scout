@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Request
 from core.config import WEB_SEARCH_TOOL_SCHEMA
 from services.search_service import perform_core_search
+from services.cache_service import search_cache
 import json
 
 router = APIRouter()

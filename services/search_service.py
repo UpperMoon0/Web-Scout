@@ -2,6 +2,7 @@ import asyncio
 from core.config import model
 from services.web_scraper import scrape_webpage_content
 from utils.prompt_builder import generate_search_prompt
+from services.cache_service import search_cache
 from ddgs import DDGS
 
 
@@ -63,6 +64,9 @@ async def perform_core_search(query: str, mode_str: str) -> dict:
                 summary_lines.append(f"{i+1}. **[{title}]({href})**\n   {body}\n")
             
             summary = "\n".join(summary_lines)
+
+        # Add to cache
+        search_cache.add(query, mode_str, results_with_content, summary)
 
         return {
             "query": query,
