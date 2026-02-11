@@ -65,8 +65,8 @@ jobs:
             -p 8000:8000 \
             nstut/web-scout:build-test
           
-          # Wait for service to be ready (up to 30 seconds)
-          for i in {1..30}; do
+          # Wait for service to be ready (up to 15 seconds)
+          for i in {1..15}; do
             if curl -s http://localhost:8000/api/health > /dev/null 2>&1; then
               echo "✓ Health check passed - HTTP server is responding"
               docker stop web-scout-test 2>/dev/null || true

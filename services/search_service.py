@@ -2,7 +2,7 @@ import asyncio
 import os
 import time
 import google.generativeai as genai
-from google.api_core.exceptions import RateLimitError, ServiceUnavailable
+from google.api_core.exceptions import TooManyRequests, ServiceUnavailable
 from services.web_scraper import scrape_webpage_content
 from utils.prompt_builder import generate_search_prompt
 from services.cache_service import search_cache
@@ -44,7 +44,7 @@ async def call_gemini_with_retry(model, prompt: str, max_retries: int = 3) -> st
                 loop = asyncio.get_running_loop()
                 response = await loop.run_in_executor(None, model.generate_content, prompt)
             return response.text
-        except (RateLimitError, ServiceUnavailable) as e:
+        except (TooManyRequests, ServiceUnavailable) as e:
             print(f"Rate limit error (attempt {attempt + 1}/{max_retries}): {e}")
             # Advance to next key for round-robin
             if key_count > 1:
