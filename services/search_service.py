@@ -2,7 +2,7 @@ import asyncio
 import os
 import time
 import google.generativeai as genai
-from google.api_core.exceptions import TooManyRequests, ServiceUnavailable
+from google.api_core.exceptions import TooManyRequests, ServiceUnavailable, BadRequest
 from services.web_scraper import scrape_webpage_content
 from utils.prompt_builder import generate_search_prompt
 from services.cache_service import search_cache
@@ -30,9 +30,7 @@ def get_llm_model_with_retry(api_key: str = None, model_name: str = None):
 
 
 async def call_gemini_with_retry(model, prompt: str, max_retries: int = 3) -> str:
-    """Call Gemini API with round-robin retry on rate limit."""
-    api_keys = settings_manager.get_raw_api_keys()
-    key_count = len(api_keys)
+    """Call Gemini API with round-robin retry on rate limit or invalid key."""
     
     for attempt in range(max_retries):
         try:
@@ -44,12 +42,37 @@ async def call_gemini_with_retry(model, prompt: str, max_retries: int = 3) -> st
                 loop = asyncio.get_running_loop()
                 response = await loop.run_in_executor(None, model.generate_content, prompt)
             return response.text
+        except BadRequest as e:
+            error_msg = str(e).lower()
+            if "api key not valid" in error_msg or "api_key_invalid" in error_msg:
+                print(f"Invalid API key error (attempt {attempt + 1}/{max_retries}): {e}")
+                # Always advance key for invalid API key, regardless of key count
+                settings_manager.advance_api_key()
+                # Get FRESH api_keys list and current index
+                api_keys = settings_manager.get_raw_api_keys()
+                current_index = settings_manager.get_current_api_key_index()
+                if current_index < len(api_keys):
+                    next_key = api_keys[current_index]
+                    model = get_llm_model_with_retry(api_key=next_key)
+                    if model is None:
+                        raise Exception("No valid API key available after retry")
+                else:
+                    # No more keys to try
+                    raise Exception("No valid API key available - all keys exhausted")
+            else:
+                # Other BadRequest errors (not API key related)
+                print(f"Bad request error (attempt {attempt + 1}/{max_retries}): {e}")
+                raise
         except (TooManyRequests, ServiceUnavailable) as e:
             print(f"Rate limit error (attempt {attempt + 1}/{max_retries}): {e}")
+            # Get fresh api_keys list each retry
+            api_keys = settings_manager.get_raw_api_keys()
+            key_count = len(api_keys)
+            
             # Advance to next key for round-robin
             if key_count > 1:
                 settings_manager.advance_api_key()
-                # Get next key and reconfigure
+                # Get FRESH current index after advancing
                 current_index = settings_manager.get_current_api_key_index()
                 next_key = api_keys[current_index]
                 model = get_llm_model_with_retry(api_key=next_key)
