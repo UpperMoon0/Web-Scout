@@ -27,7 +27,7 @@ async def test_search_with_ai_summary():
     """Test search flow when AI model is available."""
     with patch('services.search_service.DDGS') as MockDDGS, \
          patch('services.search_service.scrape_webpage_content') as mock_scrape, \
-         patch('services.search_service.model') as mock_model:
+         patch('services.search_service.get_llm_model') as mock_get_model:
         
         # Mock DDGS
         mock_ddgs_instance = MockDDGS.return_value
@@ -38,10 +38,14 @@ async def test_search_with_ai_summary():
         mock_scrape.return_value = "Full scraped content"
         
         # Mock AI Model
+        mock_model = MagicMock()
         mock_response = MagicMock()
         mock_response.text = "AI Generated Summary"
         mock_model.generate_content.return_value = mock_response
         mock_model.generate_content_async = AsyncMock(return_value=mock_response)
+        
+        # Mock get_llm_model to return our mock model
+        mock_get_model.return_value = mock_model
 
         result = await perform_core_search("query", "summary")
         
@@ -54,7 +58,7 @@ async def test_search_without_ai_key_fallback():
     """Test fallback formatting when AI model is None."""
     with patch('services.search_service.DDGS') as MockDDGS, \
          patch('services.search_service.scrape_webpage_content') as mock_scrape, \
-         patch('services.search_service.model', None): # Mock model as None
+         patch('services.search_service.get_llm_model', return_value=None): # Mock model as None
         
         # Mock DDGS
         mock_ddgs_instance = MockDDGS.return_value
