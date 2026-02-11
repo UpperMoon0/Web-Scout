@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from core.config import WEB_SEARCH_TOOL_SCHEMA
 from services.search_service import perform_core_search
 from services.cache_service import search_cache
-from core.settings import settings_manager
+from core.settings import settings_manager, mask_api_keys
 import json
 
 router = APIRouter()
@@ -157,4 +157,21 @@ async def get_settings():
 @router.post("/settings")
 async def update_settings(settings: dict):
     """Update configuration settings."""
+    # Handle backward compatibility: convert single key to list
+    if 'gemini_api_key' in settings and 'gemini_api_keys' not in settings:
+        # Old format: single key
+        single_key = settings.pop('gemini_api_key')
+        if single_key and single_key.strip():
+            # Only add if not empty
+            settings['gemini_api_keys'] = [single_key.strip()]
+        else:
+            settings['gemini_api_keys'] = []
+    
+    # Ensure gemini_api_keys is a list
+    if 'gemini_api_keys' in settings and not isinstance(settings['gemini_api_keys'], list):
+        if isinstance(settings['gemini_api_keys'], str):
+            settings['gemini_api_keys'] = [settings['gemini_api_keys']]
+        else:
+            settings['gemini_api_keys'] = []
+    
     return settings_manager.save_settings(settings)

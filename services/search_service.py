@@ -2,6 +2,7 @@ import asyncio
 import os
 import time
 import google.generativeai as genai
+from google.api_core.exceptions import RateLimitError, ServiceUnavailable
 from services.web_scraper import scrape_webpage_content
 from utils.prompt_builder import generate_search_prompt
 from services.cache_service import search_cache
@@ -9,13 +10,13 @@ from ddgs import DDGS
 from core.settings import settings_manager
 
 
-def get_llm_model():
-    """Get configured Gemini model based on current settings."""
-    api_key = settings_manager.get("gemini_api_key")
+def get_llm_model_with_retry(api_key: str = None, model_name: str = None):
+    """Get configured Gemini model."""
     if not api_key:
         api_key = os.getenv("GEMINI_API_KEY")
-
-    model_name = settings_manager.get("gemini_model")
+    
+    if not model_name:
+        model_name = settings_manager.get("gemini_model")
 
     if not api_key:
         return None
@@ -26,6 +27,43 @@ def get_llm_model():
     except Exception as e:
         print(f"Error configuring Gemini: {e}")
         return None
+
+
+async def call_gemini_with_retry(model, prompt: str, max_retries: int = 3) -> str:
+    """Call Gemini API with round-robin retry on rate limit."""
+    api_keys = settings_manager.get_raw_api_keys()
+    key_count = len(api_keys)
+    
+    for attempt in range(max_retries):
+        try:
+            # Use async generation if available
+            if hasattr(model, 'generate_content_async'):
+                response = await model.generate_content_async(prompt)
+            else:
+                # Fallback for models without async support
+                loop = asyncio.get_running_loop()
+                response = await loop.run_in_executor(None, model.generate_content, prompt)
+            return response.text
+        except (RateLimitError, ServiceUnavailable) as e:
+            print(f"Rate limit error (attempt {attempt + 1}/{max_retries}): {e}")
+            # Advance to next key for round-robin
+            if key_count > 1:
+                settings_manager.advance_api_key()
+                # Get next key and reconfigure
+                current_index = settings_manager.get_current_api_key_index()
+                next_key = api_keys[current_index]
+                model = get_llm_model_with_retry(api_key=next_key)
+                if model is None:
+                    raise Exception("No valid API key available after retry")
+            else:
+                # Single key, wait and retry with exponential backoff
+                wait_time = (2 ** attempt) * 1
+                await asyncio.sleep(wait_time)
+        except Exception as e:
+            print(f"Error calling Gemini: {e}")
+            raise
+    
+    raise Exception("Max retries exceeded for Gemini API")
 
 
 async def perform_core_search(query: str, mode_str: str) -> dict:
@@ -86,17 +124,18 @@ async def perform_core_search(query: str, mode_str: str) -> dict:
         llm_start = time.perf_counter()
         prompt = generate_search_prompt(query, results_with_content, mode_str)
         
-        model = get_llm_model()
+        # Get API key for round-robin
+        api_keys = settings_manager.get_raw_api_keys()
+        if api_keys:
+            current_index = settings_manager.get_current_api_key_index()
+            api_key = api_keys[current_index]
+        else:
+            api_key = os.getenv("GEMINI_API_KEY")
+        
+        model = get_llm_model_with_retry(api_key=api_key)
 
         if model:
-            # Use async generation if available, otherwise run in threadpool
-            if hasattr(model, 'generate_content_async'):
-                response = await model.generate_content_async(prompt)
-            else:
-                # Fallback for models without async support
-                response = await loop.run_in_executor(None, model.generate_content, prompt)
-            
-            summary = response.text
+            summary = await call_gemini_with_retry(model, prompt)
         else:
             # Fallback: Generate a basic summary from search snippets
             summary_lines = ["**AI Summarization unavailable. Displaying top search results:**\n"]
@@ -110,6 +149,10 @@ async def perform_core_search(query: str, mode_str: str) -> dict:
         timing["llm_time"] = time.perf_counter() - llm_start
 
         timing["total_time"] = time.perf_counter() - start_time
+
+        # Advance to next key for round-robin after successful call
+        if api_keys:
+            settings_manager.advance_api_key()
 
         # Add to cache
         search_cache.add(query, mode_str, results_with_content, summary, timing)
