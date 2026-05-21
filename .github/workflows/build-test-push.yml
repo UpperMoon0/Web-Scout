@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ['**']
+    branches: [main, dev]
   pull_request:
     branches: [main, dev]
 
@@ -107,13 +107,16 @@ jobs:
             DOCKER_USER=$(az keyvault secret show --vault-name nstutcommonkv --name dockerhub-username --query value -o tsv)
             DOCKER_TOKEN=$(az keyvault secret show --vault-name nstutcommonkv --name dockerhub-token --query value -o tsv)
             GH_PAT=$(az keyvault secret show --vault-name nstutcommonkv --name github-pat --query value -o tsv)
+            LLM_ENDPOINT_URL=$(az keyvault secret show --vault-name nstutcommonkv --name llm-endpoint-url --query value -o tsv)
             
             echo "::add-mask::$DOCKER_TOKEN"
             echo "::add-mask::$GH_PAT"
+            echo "::add-mask::$LLM_ENDPOINT_URL"
             
             echo "DOCKER_USER=$DOCKER_USER" >> $GITHUB_OUTPUT
             echo "DOCKER_TOKEN=$DOCKER_TOKEN" >> $GITHUB_OUTPUT
             echo "GH_PAT=$GH_PAT" >> $GITHUB_OUTPUT
+            echo "LLM_ENDPOINT_URL=$LLM_ENDPOINT_URL" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -156,4 +159,4 @@ jobs:
           token: ${{ steps.kv.outputs.GH_PAT }}
           repository: UpperMoon0/LilyIV
           event-type: web-scout-pushed
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "image_tag": "${{ env.IMAGE_TAG }}"}'
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "image_tag": "${{ env.IMAGE_TAG }}", "llm_endpoint_url": "${{ steps.kv.outputs.LLM_ENDPOINT_URL }}"}'

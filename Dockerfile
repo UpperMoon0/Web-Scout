@@ -18,9 +18,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the Web-Scout directory content to the working directory
 COPY . /app/Web-Scout
 
-# Copy and set environment file
-COPY .env* /app/Web-Scout/
-
 # Set working directory to the application directory
 WORKDIR /app/Web-Scout
 
