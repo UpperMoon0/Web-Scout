@@ -1,4 +1,5 @@
 import asyncio
+import os
 import time
 import httpx
 from services.web_scraper import scrape_webpage_content
@@ -13,7 +14,7 @@ async def call_llm(prompt: str, model_name: str = None, max_retries: int = 3) ->
     if model_name is None:
         model_name = settings_manager.get("llm_model", "gemini-3-flash-preview")
     
-    llm_endpoint = settings_manager.get("llm_endpoint")
+    llm_endpoint = os.getenv("LLM_ENDPOINT_URL") or settings_manager.get("llm_endpoint")
     
     if not llm_endpoint:
         raise Exception("No LLM endpoint configured. Set 'llm_endpoint' in settings.")
@@ -109,19 +110,14 @@ async def perform_core_search(query: str, mode_str: str) -> dict:
 
         llm_start = time.perf_counter()
         prompt = generate_search_prompt(query, results_with_content, mode_str)
-        
-        llm_endpoint = settings_manager.get("llm_endpoint")
+
+        llm_endpoint = os.getenv("LLM_ENDPOINT_URL") or settings_manager.get("llm_endpoint")
+
         if not llm_endpoint:
-            summary_lines = ["**LLM not configured. Displaying top search results:**\n"]
-            for i, res in enumerate(results_with_content[:5]):
-                title = res.get('title', 'No Title')
-                href = res.get('href', '#')
-                body = res.get('body', 'No description available.')
-                summary_lines.append(f"{i+1}. **[{title}]({href})**\n   {body}\n")
-            summary = "\n".join(summary_lines)
-        else:
-            model_name = settings_manager.get("llm_model", "gemini-3-flash-preview")
-            summary = await call_llm(prompt, model_name)
+            raise Exception("No LLM endpoint configured. Set 'LLM_ENDPOINT_URL' env var or 'llm_endpoint' in settings.")
+        
+        model_name = settings_manager.get("llm_model", "gemini-3-flash-preview")
+        summary = await call_llm(prompt, model_name)
         
         timing["llm_time"] = time.perf_counter() - llm_start
         timing["total_time"] = time.perf_counter() - start_time

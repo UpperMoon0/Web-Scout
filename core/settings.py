@@ -72,8 +72,8 @@ class SettingsManager:
     def get_settings(self) -> Dict[str, Any]:
         return self.settings.copy()
 
-    def get(self, key: str) -> Any:
-        return self.settings.get(key, DEFAULT_SETTINGS.get(key))
+    def get(self, key: str, default: Any = None) -> Any:
+        return self.settings.get(key, default if default is not None else DEFAULT_SETTINGS.get(key))
 
 
 settings_manager = SettingsManager()
