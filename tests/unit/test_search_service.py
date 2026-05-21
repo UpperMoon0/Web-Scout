@@ -28,7 +28,8 @@ async def test_search_with_llm():
     with patch('services.search_service.DDGS') as MockDDGS, \
          patch('services.search_service.scrape_webpage_content') as mock_scrape, \
          patch('services.search_service.settings_manager') as mock_settings, \
-         patch('services.search_service.call_llm') as mock_call_llm:
+         patch('services.search_service.call_llm') as mock_call_llm, \
+         patch('services.search_service.os.getenv') as mock_getenv:
         
         mock_ddgs_instance = MockDDGS.return_value
         mock_ddgs_instance.__enter__.return_value = mock_ddgs_instance
@@ -36,12 +37,13 @@ async def test_search_with_llm():
         
         mock_scrape.return_value = "Full scraped content"
         
-        mock_settings.get.side_effect = lambda key: {
-            "llm_endpoint": "http://localhost:11435",
+        mock_getenv.return_value = "http://localhost:11435"
+        
+        mock_settings.get.side_effect = lambda key, default=None: {
             "llm_model": "gemini-3-flash-preview",
             "max_results": 10,
             "safe_search": True,
-        }.get(key)
+        }.get(key, default)
         
         mock_call_llm.return_value = "AI Generated Summary"
 
@@ -54,10 +56,11 @@ async def test_search_with_llm():
 
 @pytest.mark.asyncio
 async def test_search_without_llm_endpoint_fallback():
-    """Test fallback formatting when LLM endpoint is not configured."""
+    """Test error when LLM endpoint is not configured."""
     with patch('services.search_service.DDGS') as MockDDGS, \
          patch('services.search_service.scrape_webpage_content') as mock_scrape, \
-         patch('services.search_service.settings_manager') as mock_settings:
+         patch('services.search_service.settings_manager') as mock_settings, \
+         patch('services.search_service.os.getenv') as mock_getenv:
         
         mock_ddgs_instance = MockDDGS.return_value
         mock_ddgs_instance.__enter__.return_value = mock_ddgs_instance
@@ -65,16 +68,15 @@ async def test_search_without_llm_endpoint_fallback():
         
         mock_scrape.return_value = "Full scraped content"
         
-        mock_settings.get.side_effect = lambda key: {
-            "llm_endpoint": "",
+        mock_getenv.return_value = None
+        
+        mock_settings.get.side_effect = lambda key, default=None: {
             "llm_model": "gemini-3-flash-preview",
             "max_results": 10,
             "safe_search": True,
-        }.get(key)
+        }.get(key, default)
 
         result = await perform_core_search("query", "summary")
         
-        assert "LLM not configured" in result['summary']
-        assert "Test Result 1" in result['summary']
-        assert "http://test1.com" in result['summary']
-        assert result['sources_used'] == 2
+        assert "No LLM endpoint configured" in result['summary']
+        assert result['sources_used'] == 0
